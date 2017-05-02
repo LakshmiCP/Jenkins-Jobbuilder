@@ -1,0 +1,125 @@
+- job:
+    name:                         cginternalsProjekt
+    description:                  'Automatically generated test'
+    project-type:                 freestyle
+    builders:
+      #  - cmake:
+      #      source-dir:
+      #      working-dir:            ../build
+      #      install-dir:            install
+      #      build-type:             CustomReleaseType
+      #      generator:              Unix Makefiles
+      #      installation-name:      CMake custom install
+      #      clean-build-dir:        false
+      #      build-tool-invocation:
+      #        - use-cmake: true
+      #          arguments: all
+      #          environment-variables: |
+      #            DESTDIR=${WORKSPACE}/artifacts/dir
+      #            URL=http://www.example.org/
+       - shell: mkdir build; cd build; cmake -G "Eclipse CDT4 - Unix Makefiles" ..; make; ./fiblib-test --gtest_output=xml:coverage.junit.xml; chmod a+x fiblib-test; gcovr --branches --xml-pretty -r . > coverage.xml; chmod a+x fiblib-test; valgrind --tool=memcheck --leak-check=full --trace-children=yes --xml=yes --xml-file=valgrind.xml ./fiblib-test
+
+      #  - scan-build:
+      #     target:                 path/to/target
+      #     target-sdk:             iphonesimulator
+      #     config:                 Debug
+      #     clang-install-name:     Analyzer
+      #     xcode-sub-path:         myProj/subfolder
+      #     workspace:              workspace
+      #     scheme:                 SchemeName
+      #     scan-build-args:        --use-analyzer Xcode
+      #     xcode-build-args:       -derivedDataPath $WORKSPACE/build
+      #     report-folder:          clangScanBuildReports
+      #  - builders-from: 'Git_Cmake'
+    triggers:
+      - pollscm:
+          cron: "H/30 * * * *"
+          ignore-post-commit-hooks: True
+      - reverse:
+          jobs:
+              - 'compile'
+              - 'code review'
+              - 'Test'
+        result: 'failure'
+
+    publishers:
+      - cobertura:
+          report-file: "**/coverage.xml"
+          only-stable: "true"
+          fail-no-reports: "true"
+          fail-unhealthy: "true"
+          fail-unstable: "true"
+          health-auto-update: "true"
+          stability-auto-update: "true"
+          zoom-coverage-chart: "true"
+          source-encoding: "Big5"
+          targets:
+            - files:
+                healthy: 10
+                unhealthy: 20
+                failing: 30
+            - method:
+                healthy: 50
+                unhealthy: 40
+                failing: 30
+    #  - cppcheck:
+    #      pattern: "cppcheck.xml"
+      - valgrind:
+          pattern: "**/valgrind.xml"
+          thresholds:
+            unstable:
+              invalid-read-write: 1
+              definitely-lost: 2
+              total: 3
+            failed:
+              invalid-read-write: 4
+              definitely-lost: 5
+              total: 6
+            fail-no-reports: true
+            fail-invalid-reports: true
+            publish-if-aborted: true
+            publish-if-failed: true
+      - junit:
+          results: "**/*.junit.xml"
+          keep-long-stdio: false
+          health-scale-factor: 2.0
+          allow-empty-results: true
+          test-stability: true
+          claim-build: true
+          measurement-plots: true
+          flaky-test-reports: true
+          allow-empty-results: true
+          junit-attachments: true
+      - scan-build:
+          mark-unstable: true
+          threshold: 50
+          exclude-paths: external-lib
+          report-folder: scan-build-report
+          publishers:
+      - email-ext:
+          recipients: barca.kumar@gmail.com
+          reply-to: barca.kumar@gmail.com
+          content-type: html
+          subject: Subject for Build ${BUILD_NUMBER}
+          body: The build has finished
+          attach-build-log: false
+          compress-log: false
+          attachments: "*/foo*.log"
+          always: true
+          save-output: true
+
+    scm:
+      - first-scm
+
+
+- scm:
+   name:                          first-scm
+   scm:
+     - git:
+        url:                       https://github.com/cginternals/cmake-init.git
+        branches:
+         - master
+         - stable
+        browser:                   githubweb
+        browser-url:               https://github.com/cginternals/cmake-init.git
+        timeout:                   20

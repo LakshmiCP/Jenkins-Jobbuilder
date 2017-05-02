@@ -1,0 +1,12 @@
+- job:
+    name: Project-Pipeline
+    project-type: pipeline
+    sandbox: true
+    pipeline-scm:
+      scm:
+        - git:
+            branches:
+              - '*/master'
+            url: https://github.com/LakshmiCP/pipeline.git
+            skip-tag: true
+      script-path: parallel.groovy

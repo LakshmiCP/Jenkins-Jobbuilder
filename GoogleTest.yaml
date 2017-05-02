@@ -1,0 +1,38 @@
+- job:
+    name:                         ProjectGoogleTest
+    description:                  'Project created for GoogleTests'
+    project-type:                 freestyle
+    builders:
+      - copyartifact:
+           project: ProjectCmake
+           filter: "build/*"
+           target: "artifact/"
+           which-build: last-successful
+           optional: true
+      - shell: chmod a+x artifact/build/fiblib-test; artifact/build/./fiblib-test --gtest_output=xml:coverage.junit.xml
+
+    publishers:
+      - junit:
+           results: "**/*.junit.xml"
+           keep-long-stdio: false
+           health-scale-factor: 2.0
+           allow-empty-results: true
+           test-stability: true
+           claim-build: true
+           measurement-plots: true
+           flaky-test-reports: true
+           allow-empty-results: true
+           junit-attachments: true
+    scm:
+      - GoogleTest-scm
+- scm:
+    name: GoogleTest-scm
+    scm:
+      - git:
+         url: https://github.com/cginternals/cmake-init.git
+         branches:
+          - master
+          - stable
+         browser: githubweb
+         browser-url: https://github.com/cginternals/cmake-init.git
+         timeout: 20

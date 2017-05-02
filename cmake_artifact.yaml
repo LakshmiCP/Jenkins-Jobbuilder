@@ -1,0 +1,27 @@
+- job:
+    name: ArtifactProjectCmake
+    description: 'Project created for cmake'
+    project-type: freestyle
+    permission-to-copy-artifact: true
+    #  - projects-to-allow-copy-artifacts: '*'
+    builders:
+      - shell: mkdir build; cd build; cmake -G "Eclipse CDT4 - Unix Makefiles" ..; make
+
+    publishers:
+      - archive:
+          artifacts: '**/build/*'
+    scm:
+      - ArtifactCmake-scm
+
+
+- scm:
+   name: ArtifactCmake-scm
+   scm:
+     - git:
+        url: https://github.com/cginternals/cmake-init.git
+        branches:
+         - master
+         - stable
+        browser: githubweb
+        browser-url: https://github.com/cginternals/cmake-init.git
+        timeout: 20

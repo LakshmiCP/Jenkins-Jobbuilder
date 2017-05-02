@@ -1,0 +1,33 @@
+- job:
+    name: ProjectCmake
+    description: 'Project created for cmake'
+    project-type: freestyle
+    builders:
+      #  - cmake:
+      #      source-dir:
+      #      working-dir:            ../build
+      #      install-dir:            install
+      #      build-type:             CustomReleaseType
+      #      generator:              Unix Makefiles
+      #      installation-name:      CMake custom install
+      #      clean-build-dir:        false
+      #      build-tool-invocation:
+      #        - use-cmake: true
+      #          arguments: all
+      - shell: mkdir build; cd build; cmake -G "Eclipse CDT4 - Unix Makefiles" ..; make
+
+    scm:
+      - Cmake-scm
+
+
+- scm:
+   name: Cmake-scm
+   scm:
+     - git:
+        url: https://github.com/cginternals/cmake-init.git
+        branches:
+         - master
+         - stable
+        browser: githubweb
+        browser-url: https://github.com/cginternals/cmake-init.git
+        timeout: 20

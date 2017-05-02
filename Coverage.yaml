@@ -1,0 +1,46 @@
+- job:
+    name:                         ProjectCoverage
+    description:                  'Project created to test coverage'
+    project-type:                 freestyle
+    builders:
+      - copyartifact:
+          project: ProjectCmake
+          filter: "build/*"
+          target: "artifact/"
+          which-build: last-successful
+          optional: true
+      - shell: chmod a+x artifact/build/fiblib-test; gcovr --branches --xml-pretty -r . > coverage.xml; chmod a+x coverage.xml
+
+    publishers:
+      - cobertura:
+          report-file: "**/coverage.xml"
+          only-stable: "true"
+          fail-no-reports: "true"
+          fail-unhealthy: "true"
+          fail-unstable: "true"
+          health-auto-update: "true"
+          stability-auto-update: "true"
+          zoom-coverage-chart: "true"
+          source-encoding: "Big5"
+          targets:
+            - files:
+                healthy: 10
+                unhealthy: 20
+                failing: 30
+            - method:
+                healthy: 50
+                unhealthy: 40
+                failing: 30
+    scm:
+      - Coverage-scm
+- scm:
+    name: Coverage-scm
+    scm:
+      - git:
+         url: https://github.com/cginternals/cmake-init.git
+         branches:
+          - master
+          - stable
+         browser: githubweb
+         browser-url: https://github.com/cginternals/cmake-init.git
+         timeout: 20
